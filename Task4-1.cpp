@@ -35,11 +35,10 @@ struct DList {
         return size;
     }
     
-    int correctId(int id) {
-        int size = this->size();
+    int correctId(int id, int size) {
 
         if (id < 0) { 
-            id += size;
+            id = -id - 1;
         }
         else {
             id = size - id - 1;
@@ -48,8 +47,8 @@ struct DList {
         return id;
     }
 
-    Node * requiredEl(int id) {
-        id = correctId(id);
+    Node * requiredEl(int id, int size) {
+        id = correctId(id, size);
         Node * temp = pHead;
 
         while (id > 0) {
@@ -61,10 +60,11 @@ struct DList {
     }
 
     int get(int id) {
-        if (!pHead || id < 0) throw 1;
-        if (id+1 > this->size()) throw 1;
+        int size = this->size();
+        if (!pHead) throw 1;
+        if (id+1 > size || id < -size) throw 1;
 
-        Node * temp = requiredEl(id);
+        Node * temp = requiredEl(id, size);
 
         return temp->item;
     }
@@ -73,9 +73,9 @@ struct DList {
         int size = this->size();
 
         if (!pHead && id == 0) return this->add(item);
-        if (id == size) return this->add(item);
-
-        Node * temp = requiredEl(id);
+        if (id == size || id == -1) return this->add(item);
+        if (id < 0) id++;
+        Node * temp = requiredEl(id, size);
 
         Node * node = new Node;
         node->item = item;
@@ -83,14 +83,14 @@ struct DList {
         node->next = temp;
         temp->prev = node;
         temp = node->prev;
-        temp->next = node;
+        if (temp != NULL) temp->next = node;
     }
 
     void removeAt(int id) {
         int size = this->size();
         if (id+1 > size) throw 1;
 
-        Node * temp = requiredEl(id);
+        Node * temp = requiredEl(id, size);
         if (temp == pHead) pHead = temp->prev;
         else temp->next->prev = temp->prev;
         if (temp->prev != NULL) temp->prev->next = temp->next;
@@ -104,13 +104,20 @@ int main() {
     list->add(10);
     list->add(20);
     list->add(30);
+    list->add(40);
+    list->add(50);
 
     cout << list->size() << endl;
-    cout << list->get(0) << endl;
 
-    list->insertAt(15, 1);
-
-    list->removeAt(1);
+    cout << list->get(-1) << endl; // 50
+    cout << list->get(0) << endl; // 10
+    
+    list->insertAt(5, 0); // 5 10 20 30 40 50
+    list->insertAt(60, -1); // 5 10 20 30 40 50 60
+    
+    cout << list->get(-1) << endl; // 60
+    cout << list->get(0) << endl; // 5
+    cout << list->get(-2) << endl; // 50
 
     return 0;
 }
